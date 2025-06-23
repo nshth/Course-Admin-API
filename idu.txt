@@ -1,0 +1,9 @@
+Your Backend Code (Starlette/FastAPI) —runs on→ Uvicorn (Web Server) —talks to→ MongoDB (mongod, DB Server)
+
+Use client.dbname if your DB name is simple and Python-friendly.
+Use client["dbname-with-special-chars"] if your DB name has dashes, spaces, or anything that doesn’t fit Python’s variable naming rules.
+
+PyMongo - Official MongoDB driver for Python. 
+
+create_index("name") is a built-in method provided by PyMongo
+insert_one() is a built-in PyMongo function that adds one document (aka one item) into a MongoDB collection.
