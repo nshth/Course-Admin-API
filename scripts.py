@@ -1,16 +1,11 @@
-""" 
-Script to parse course information from courses.json, create the appropriate databases and
-collection(s) on a local instance of MongoDB, create the appropriate indices (for efficient retrieval)
-and finally add the course data on the collection(s).
-"""
 
 import pymongo
 import json
 
-# Connect to MongoDB
+#connect to mongo db
 client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["courses"]
-collection = db["courses"]
+db = client['course-db']
+collection = db['courses']
 
 # Read courses from courses.json
 with open("courses.json", "r") as f:
@@ -31,7 +26,5 @@ for course in courses:
 # Add courses to collection
 for course in courses:
     collection.insert_one(course)
-
 # Close MongoDB connection
 client.close()
-print("Done")
