@@ -13,6 +13,7 @@ courses = db['courses']
 @app.get('/courses')
 def get_course(sort_by: str = 'date', domain: str = None):
     # set the rating.total and rating.count to all the courses based on the sum of the chapters rating
+    # returns an iterator
     for course in courses.find():
         total = 0
         count = 0
@@ -39,6 +40,34 @@ def get_course(sort_by: str = 'date', domain: str = None):
     if domain:
         query['domain'] = domain
 # queries the MongoDB database to retrieve the relevant course information
-    course = courses.find(query, {'chapters': 0, '_id': 0}).sort(sort_field, direction)
-# return the courses in a list
-    return list(courses)
+    courses_cursor = courses.find(query, {'chapters': 0, '_id': 0}).sort(sort_field, direction)
+# return the courses in a list not iterator
+    return list(courses_cursor)
+
+@app.get('/courses/{course_id}')
+def get_course_by_id(course_id: str):
+    course = courses.find_one({'_id': ObjectId(course_id)}, {'_id':0, 'chapters': 0})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    try:
+        course['rating'] = course['rating']['total']
+    except (KeyError, TypeError):
+        course['rating'] = "Not rated yet"
+    return course
+
+# Get Specific Chapter Information Endpoint
+@app.get('/courses/{course_id}/{chapter_id}')
+def get_chapter_by_id(course_id: str, chapter_id: str):
+    course = courses.find_one({'_id': ObjectId(course_id)}, {'_id':0})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    chapters = course.get('chapters', [])
+    try:
+        chapter = chapters[int(chapter_id)]
+    except (KeyError, IndexError, ValueError) as e:
+        raise HTTPException(status_code=404, detail="chapter not exist") from e
+    return chapter
+
+
+
+
