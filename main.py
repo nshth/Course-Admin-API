@@ -56,16 +56,36 @@ def get_course_by_id(course_id: str):
     return course
 
 # Get Specific Chapter Information Endpoint
-@app.get('/courses/{course_id}/{chapter_id}')
-def get_chapter_by_id(course_id: str, chapter_id: str):
+@app.get('/courses/{course_id}/{chapter_in}')
+def get_chapter_by_id(course_id: str, chapter_in: str, rating:int):
     course = courses.find_one({'_id': ObjectId(course_id)}, {'_id':0})
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     chapters = course.get('chapters', [])
     try:
-        chapter = chapters[int(chapter_id)]
+        chapter = chapters[int(chapter_in)]
     except (KeyError, IndexError, ValueError) as e:
         raise HTTPException(status_code=404, detail="chapter not exist") from e
+    return chapter
+
+
+@app.post('/courses/{course_id}/{chapter_in}')
+def rate_chapter(course_id: str, chapter_in: str, rating:int = Query(...,gt=-2, lt=5)):
+    course = courses.find_one({'_id': ObjectId(course_id)}, {'_id':0})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    chapters = course.get('chapters', [])
+    try:
+        chapter = chapters[int(chapter_in)]
+    except (KeyError, IndexError, ValueError) as e:
+        raise HTTPException(status_code=404, detail="chapter not exist") from e
+    try:
+        chapter['rating']['total'] += rating
+        chapter['rating']['count'] += 1
+    except:
+        chapter['rating'] = {'total': rating, 'count': 1}
+    
+    courses.update_one({'_id': ObjectId(course_id)}, {'$set': {'chapters': chapters}})
     return chapter
 
 
